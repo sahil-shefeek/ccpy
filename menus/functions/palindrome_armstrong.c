@@ -44,20 +44,34 @@ int isArmstrong(int num)
 
 int main()
 {
-    int num;
+    int num, option;
 
     printf("Enter a three-digit number: ");
     scanf("%d", &num);
 
-    if (isPalindrome(num))
-        printf("%d is a palindrome.\n", num);
-    else
-        printf("%d is not a palindrome.\n", num);
+    printf("Choose an option:\n");
+    printf("1. Check for Palindrome\n");
+    printf("2. Check for Armstrong number\n");
+    scanf("%d", &option);
 
-    if (isArmstrong(num))
-        printf("%d is an Armstrong number.\n", num);
-    else
-        printf("%d is not an Armstrong number.\n", num);
+    switch (option)
+    {
+    case 1:
+        if (isPalindrome(num))
+            printf("%d is a palindrome.\n", num);
+        else
+            printf("%d is not a palindrome.\n", num);
+        break;
+    case 2:
+        if (isArmstrong(num))
+            printf("%d is an Armstrong number.\n", num);
+        else
+            printf("%d is not an Armstrong number.\n", num);
+        break;
+    default:
+        printf("Invalid option.\n");
+        break;
+    }
 
     return 0;
 }
