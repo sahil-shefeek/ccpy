@@ -20,10 +20,10 @@ int isPalindrome(int num)
 
 int main()
 {
-    int num, option;
-
-    printf("Enter a three-digit number: ");
+    int num;
+    printf("Enter a number: ");
     scanf("%d", &num);
+
     if (isPalindrome(num))
         printf("%d is a palindrome.\n", num);
     else
