@@ -1,6 +1,6 @@
 //  Sum of the series :
-//   This code represents the Taylor series expansion for cosine(x),
-//       1 − (x^2)/2! + (x^4)/4! − (x^6)/6! ...
+//   This code represents the Taylor series expansion for sine(x),
+//       1 − (x^3)/3! + (x^5)/5! − (x^7)/7! ...
 //   where the limit 'n' is provided by user input (stdin).
 //   The program finds the sum of the above the series upto 'n' terms.
 
@@ -12,7 +12,7 @@ int main()
 {
     int n;
     double deg, rad, term, sum = 0;
-    printf("Taylor series expansion for cos(x).\n");
+    printf("Taylor series expansion for sin(x).\n");
     printf("Enter the angle, 'x' (in degrees): ");
     scanf("%lf", &deg);
     printf("Enter the number of terms to compute (accuracy): ");
@@ -22,9 +22,9 @@ int main()
     for (int i = 0; i <= n; i++)
     {
         double fact = 1;
-        for (int j = 1; j <= (2 * i); j++)
+        for (int j = 1; j <= (2 * i + 1); j++)
             fact *= j;
-        term = pow(-1, i) * (pow(rad, 2 * i) / fact);
+        term = pow(-1, i) * (pow(rad, 2 * i + 1) / fact);
         sum += term;
     }
     printf("The calculated sum is: %lf\n", sum);
