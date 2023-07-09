@@ -46,7 +46,7 @@ int main()
             break;
 
         default:
-            printf("ERR: Invalid selection try again");
+            printf("ERR: Invalid selection try again\n");
             goto choice;
         }
 
