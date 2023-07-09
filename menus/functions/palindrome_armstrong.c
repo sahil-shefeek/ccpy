@@ -32,7 +32,7 @@ int isArmstrong(int num)
 
         result += digit * digit * digit;
 
-        // removing last digit from the orignal number
+        // removing last digit from the original number
         originalNum /= 10;
     }
 
@@ -44,4 +44,20 @@ int isArmstrong(int num)
 
 int main()
 {
+    int num;
+
+    printf("Enter a three-digit number: ");
+    scanf("%d", &num);
+
+    if (isPalindrome(num))
+        printf("%d is a palindrome.\n", num);
+    else
+        printf("%d is not a palindrome.\n", num);
+
+    if (isArmstrong(num))
+        printf("%d is an Armstrong number.\n", num);
+    else
+        printf("%d is not an Armstrong number.\n", num);
+
+    return 0;
 }
