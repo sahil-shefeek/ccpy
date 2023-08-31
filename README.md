@@ -1,16 +1,17 @@
-# CCpy - Pre-Tested C Codebase for KTU University Students
+<h1 align = center> CCpy </h1>
 
-CCpy (pronounced as c-copy) is a repository that provides access to a collection of pre-tested, working C programs designed specifically for KTU (Kerala Technological University) university students. This repository aims to assist students in learning and understanding various concepts in C programming, as well as providing practical examples for assignments, projects, and exams.
+<h3 align = center> Pre-Tested C Codebase for KTU University Students</h3>
 
+CCpy is a repository that provides access to a collection of pre-tested, working C programs designed specifically for KTU (Kerala Technological University) students. This repository aims to assist students in learning and understanding various concepts in C programming, as well as providing practical examples for assignments, projects, and exams.
 
 ## Table of Contents
 
 - [Features](#features)
+- [Navigation](#navigation)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
-
 
 ## Features
 
@@ -18,42 +19,78 @@ CCpy (pronounced as c-copy) is a repository that provides access to a collection
 - **Comprehensive Collection**: The repository covers a wide range of C programs that are commonly encountered in KTU university curriculum.
 - **Easy to Understand**: Each program is well-commented and structured, making it easier for students to comprehend and learn from.
 
+## Navigation
 
-## Installation
+Navigating through a repository can be challenging, but our repository is designed with meticulous organization to make navigation easy and intuitive.
+
+The file structure of CCpy is structured according to a clear navigational hierarchy. Below is an overview of this hierarchy, arranged from the highest to the lowest level of importance:
+
+| Precedence level |                      Concept                      |
+| :--------------: | :-----------------------------------------------: |
+|        1         |                       Files                       |
+|        2         |                Structs and Unions                 |
+|        3         |                      Strings                      |
+|        4         |                     Pointers                      |
+|        5         |                      Arrays                       |
+|        6         |                     Functions                     |
+|        7         |       Loops <br>`while , do .. while, for`        |
+|       8.1        |  Flow Control <br>`switch , goto, ternary (:?)`   |
+|       8.2        | Flow Control (Branching) <br>`if, else , else if` |
+|        9         |    Default (Anything Not Otherwise Mentioned)     |
+
+Each navigational precedence level has its own dedicated directory or folder.
+Certain levels (8.1, 8.2) are closely related that they have one parent folder with sub folders showing individual levels.
+
+### Example Usage
+
+Let's imagine you're looking a program that involves three key elements:
+
+a) Functions,
+b) Arrays, and
+c) Loops.
+
+In this scenario, you can efficiently navigate the repository's structure as follows:
+
+1. **Arrays**: Begin by exploring the **_arrays_** directory since arrays have a higher precedence.
+
+2. **Functions**: After reviewing arrays, proceed to the **_functions_** directory as it has the next highest precedance.
+
+3. **Loops**: Finally, navigate to the **_loops_** directory, which houses loop-related programs, to complete your journey.
+
+By following this path, you will navigate through: **Arrays > Functions > Loops > program.c**
+
+## How to run?
 
 To use the programs in this repository, you need to have a C compiler installed on your system, such as GCC (GNU Compiler Collection). Follow these steps to get started:
 
-1. Clone this repository to your local machine using the following command:
+1.  Clone this repository to your local machine using the following command:
+
+    ```shell
+    git clone https://github.com/sahil-shefeek/ccpy.git
 
 
-   ```shell
-   git clone https://github.com/sahil-shefeek/ccpy.git
-   
+    ```
 
-2. Navigate to the cloned repository's directory:
+2.  Navigate to the cloned repository's directory:
 
-
-   ```shell
-   cd ccpy
-   
-   
-
-3. Compile and run any program using your preferred C compiler. For example, to compile and run the program named `program.c`, use the following commands:
+    ```shell
+    cd ccpy
 
 
-   ```shell
-   gcc program.c
-   ./a.out
-  
-  For Windows users: 
 
-    
+    ```
+
+3.  Compile and run any program using your preferred C compiler. For example, to compile and run the program named `program.c`, use the following commands:
+
+    ```shell
     gcc program.c
-    a.exe
+    ./a.out
+    ```
 
-   
+    For Windows users:
 
-## Usage
+        gcc program.c
+        a.exe
 
 Each program in this repository is contained in its own file with a descriptive name. To use a specific program, follow these steps:
 
@@ -64,7 +101,6 @@ Each program in this repository is contained in its own file with a descriptive 
 3. Modify the code as needed or use it as a reference for your own projects.
 
 4. Save the changes and follow the installation instructions mentioned above to compile and run the program.
-
 
 ## Contributing
 
@@ -83,7 +119,6 @@ Contributions to CCPy are welcome and encouraged! If you would like to contribut
 6. Open a pull request in the main repository, explaining the changes you have made.
 
 Please ensure that your contributions adhere to the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) code of conduct.
-
 
 ## License
 
