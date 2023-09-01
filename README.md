@@ -118,8 +118,6 @@ Contributions to CCPy are welcome and encouraged! If you would like to contribut
 
 6. Open a pull request in the main repository, explaining the changes you have made.
 
-Please ensure that your contributions adhere to the [Contributor Covenant](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) code of conduct.
-
 ## License
 
 The code in this repository is licensed under the [MIT License](LICENSE). You are free to use, modify, and distribute the code for personal and educational purposes.
