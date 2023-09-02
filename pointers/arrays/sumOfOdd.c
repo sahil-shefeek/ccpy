@@ -3,8 +3,8 @@
 
 int main()
 {
-    int *size = (int *)malloc(1);
-    int *sum = (int *)malloc(1);
+    int *size = (int *)malloc(sizeof(int));
+    int *sum = (int *)malloc(sizeof(int));
 
     printf("Enter the array size : ");
     scanf("%d", size);
