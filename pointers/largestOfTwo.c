@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-int main()
-{
-    int *a = (int *)malloc(1);
-    int *b = (int *)malloc(1);
+
+int main() {
+    int *a = (int *) malloc(sizeof(int));
+    int *b = (int *) malloc(sizeof(int));
 
     printf("Enter any two numbers : ");
     scanf("%d%d", a, b);
