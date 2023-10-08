@@ -32,5 +32,13 @@ int main()
                 }
             }
         }
+
+        printf("Product is:\n");
+        for (int i = 0; i < bRows; i++)
+        {
+            for (int j = 0; j < bCols; j++)
+                printf("%d\t", b[i][j]);
+            printf("\n");
+        }
     }
 }
