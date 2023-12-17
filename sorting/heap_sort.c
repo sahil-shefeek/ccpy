@@ -4,20 +4,22 @@
 
 void max_heapify(int *arr, int index, int size)
 {
-    int temp = arr[index];
-    int child = 2 * index;
-    while (child <= size)
+    int parent = arr[index];
+    int child_index = 2 * index;
+    while (child_index <= size)
     {
-        if (child < size && arr[child + 1] > arr[child])
-            child++;
+        if (child_index < size && arr[child_index + 1] > arr[child_index])
+            child_index++;
 
-        if (temp <= arr[child])
+        if (parent <= arr[child_index])
         {
-            arr[child / 2] = arr[child];
-            child = 2 * child;
+            arr[child_index / 2] = arr[child_index];
+            child_index *= 2;
         }
+        else
+            break;
     }
-    arr[child / 2] = temp;
+    arr[child_index / 2] = parent;
 }
 
 void heapsort(int *arr, int size)
@@ -39,19 +41,22 @@ void build_maxheap(int *arr, int size)
 
 int main()
 {
-    int size, i;
+    int size;
     printf("Enter number of elements in the array: ");
     scanf("%d", &size);
     int arr[size + OFFSET];
     printf("Enter the array elements:\n");
-    for (i = 1; i <= size; i++)
-        scanf("%d", arr + i);
-
+    for (int i = 1; i <= size; i++)
+    {
+        printf("Enter element %d: ", i);
+        scanf("%d", &arr[i]);
+    }
     build_maxheap(arr, size);
     heapsort(arr, size);
     printf("Sorted Output\n");
-    for (i = 1; i <= size; i++)
+    for (int i = 1; i <= size; i++)
     {
         printf("%d  ", arr[i]);
     }
+    return 0;
 }
