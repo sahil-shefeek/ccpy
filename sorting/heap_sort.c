@@ -5,23 +5,19 @@
 void max_heapify(int *arr, int index, int size)
 {
     int temp = arr[index];
-    int left = 2 * index;
-    while (left <= size)
+    int child = 2 * index;
+    while (child <= size)
     {
-        if (left < size && arr[left + 1] > arr[left])
-            left++;
-        if (temp > arr[left])
+        if (child < size && arr[child + 1] > arr[child])
+            child++;
+
+        if (temp <= arr[child])
         {
-            break;
-        }
-        else if (temp <= arr[left])
-        {
-            arr[left / 2] = arr[left];
-            left = 2 * left;
+            arr[child / 2] = arr[child];
+            child = 2 * child;
         }
     }
-    arr[left / 2] = temp;
-    return;
+    arr[child / 2] = temp;
 }
 
 void heapsort(int *arr, int size)
