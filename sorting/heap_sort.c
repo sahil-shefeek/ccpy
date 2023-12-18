@@ -39,6 +39,13 @@ void build_maxheap(int *arr, int size)
         max_heapify(arr, i, size);
 }
 
+void print_array(int *arr, int size)
+{
+    for (int i = 1; i <= size; i++)
+        printf("%d  ", arr[i]);
+    printf("\n");
+}
+
 int main()
 {
     int size;
@@ -47,16 +54,12 @@ int main()
     int arr[size + OFFSET];
     printf("Enter the array elements:\n");
     for (int i = 1; i <= size; i++)
-    {
-        printf("Enter element %d: ", i);
         scanf("%d", &arr[i]);
-    }
+    printf("Unsorted array:\n");
+    print_array(arr, size);
     build_maxheap(arr, size);
     heapsort(arr, size);
-    printf("Sorted Output\n");
-    for (int i = 1; i <= size; i++)
-    {
-        printf("%d  ", arr[i]);
-    }
+    printf("Sorted array:\n");
+    print_array(arr, size);
     return 0;
 }
