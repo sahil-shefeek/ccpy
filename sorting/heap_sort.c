@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define OFFSET 1
+#define OFFSET 1 // To accomdate for the 1 based indexing rather than 0
 
 void max_heapify(int *arr, int index, int size)
 {
@@ -55,11 +55,11 @@ int main()
     printf("Enter the array elements:\n");
     for (int i = 1; i <= size; i++)
         scanf("%d", &arr[i]);
-    printf("Unsorted array:\n");
+    printf("Original array: ");
     print_array(arr, size);
     build_maxheap(arr, size);
     heapsort(arr, size);
-    printf("Sorted array:\n");
+    printf("Sorted array: ");
     print_array(arr, size);
     return 0;
 }
