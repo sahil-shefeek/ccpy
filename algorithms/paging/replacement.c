@@ -13,6 +13,11 @@ void fifo(int a[], int n, int frames) {
         j = (j + 1) % frames;
       }
       inframe[a[i]] = 1;
+      printf("Frames: ");
+      for (int k = 0; k < c; k++) {
+      	printf("%d  ", q[k]);
+      }
+      printf("\n");
       miss++;
     }
   }
@@ -36,6 +41,11 @@ void lru(int a[], int n, int frames) {
         q[loc] = a[i];
       }
       inframe[a[i]] = 1;
+      printf("Frames: ");
+      for (int k = 0; k < c; k++) {
+      	printf("%d  ", q[k]);
+      }
+      printf("\n");
       miss++;
     }
   }
@@ -59,6 +69,11 @@ void lfu(int a[], int n, int frames) {
         q[loc] = a[i];
       }
       inframe[a[i]] = 1;
+      printf("Frames: ");
+      for (int k = 0; k < c; k++) {
+      	printf("%d  ", q[k]);
+      }
+      printf("\n");
       miss++;
     }
   }
