@@ -54,20 +54,7 @@ void bestfit(int m[], int n, int pr[], int p) {
       }
     }
   }
-  // same as ffit
-  for (i = 0; i < p; i++) {
-    for (j = c; j < n; j++) {
-      if (m[j] >= pr[i]) {
-        temp = m[j];
-        m[j] = m[c];
-        m[c] = temp;
-        q[c] = i + 1;
-        c++;
-        break;
-      }
-    }
-  }
-  display(m, n, pr, c);
+  firstfit(m, n, pr, p);
 }
 
 void worstfit(int m[], int n, int pr[], int p) {
@@ -83,19 +70,7 @@ void worstfit(int m[], int n, int pr[], int p) {
     }
   }
 
-  for (i = 0; i < p; i++) {
-    for (j = c; j < n; j++) {
-      if (m[j] >= pr[i]) {
-        temp = m[j];
-        m[j] = m[c];
-        m[c] = temp;
-        q[c] = i + 1;
-        c++;
-        break;
-      }
-    }
-  }
-  display(m, n, pr, c);
+  firstfit(m, n, pr, p);
 }
 
 int main() {
