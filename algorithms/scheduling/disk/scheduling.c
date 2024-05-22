@@ -4,7 +4,8 @@
 #define MAX 20
 
 int temp;
-void sort(int a[], int n) {
+
+void sort(int *a, int n) {
   for (int i = 0; i < n - 1; i++) {
     for (int j = 0; j < n - 1; j++) {
       if (a[j] > a[j + 1]) {
@@ -16,27 +17,27 @@ void sort(int a[], int n) {
   }
 }
 
-void fcfs(int a[], int n) {
+void fcfs(int *a, int n) {
   int i, total = 0;
   printf("Sequence : %d ", a[0]);
   for (i = 0; i < n; i++) {
     printf("%d ", a[i + 1]);
-    temp = abs(a[i + 1] - a[i]);
-    total += temp;
+    total += abs(a[i + 1] - a[i]);
   }
   printf("\nTotal head movement = %d \n", total);
 }
 
-void scan(int a[], int n, int start) {
-  int c, total = 0, loc, i, j, min, max, inc, b[MAX];
-  printf("Chosse 1:left or 2:right :");
+void scan(int *c1, int n, int start) {
+  int c, total = 0, loc, i, j, min, max, inc,a[MAX], b[MAX];
+  for (i = 0; i < n +1; i++)
+    a[i]=c1[i];
+  printf("Choose 1:left or 2:right :");
   scanf("%d", &c);
   printf("Enter the Start and End of disk :");
   scanf("%d%d", &min, &max);
   a[++n] = min, a[++n] = max;
   sort(a, ++n);
-  for (i = 0; i < n && a[i] != start; i++)
-    ;
+  for (i = 0; i < n && a[i] != start; i++);
   loc = i;
   inc = (c == 1) ? (-1) : 1;
   for (i = loc, j = 0; i >= 0 && i < n;) {
@@ -48,39 +49,38 @@ void scan(int a[], int n, int start) {
   printf("Sequence : %d ", b[0]);
   for (i = 0; i < n - 1; i++) {
     printf("%d ", b[i + 1]);
-    temp = b[i + 1] - b[i];
-    temp = (temp < 0) ? temp * (-1) : temp;
-    total += temp;
+    total += abs(b[i + 1] - b[i]);
   }
   printf("\nTotal head movement = %d \n", total);
 }
-void cscan(int a[], int n, int start) {
-  int c, total = 0, loc, i, j, min, max, inc, b[MAX];
-  printf("Chosse 1:left or 2:right :");
+
+void cscan(int c1[], int n, int start) {
+  int c, total = 0, loc, i, j, min, max, inc,a[MAX], b[MAX];
+  for (i = 0; i < n + 1; i++)
+    a[i]=c1[i];
+  printf("Choose 1:left or 2:right :");
   scanf("%d", &c);
   printf("Enter the Start and End of disk :");
   scanf("%d%d", &min, &max);
   a[++n] = min, a[++n] = max;
   sort(a, ++n);
-  for (i = 0; i < n && a[i] != start; i++)
-    ;
+  for (i = 0; i < n && a[i] != start; i++);
   loc = i;
   inc = (c == 1) ? (-1) : 1;
   for (i = loc, j = 0; j < n;) {
     b[j++] = a[i];
     i += inc;
-    if ((i <= 0 || i >= n - 1) && j < n - 1)
-      i = (i == 0) ? (n - 1) : 0;
+    if ((i < 0 || i > n - 1) && j < n - 1)
+      i = (i < 0) ? (n - 1) : 0;
   }
   printf("Sequence : %d ", b[0]);
   for (i = 0; i < n - 1; i++) {
     printf("%d ", b[i + 1]);
-    temp = b[i + 1] - b[i];
-    temp = (temp < 0) ? temp * (-1) : temp;
-    total += temp;
+    total += abs(b[i + 1] - b[i]);
   }
   printf("\nTotal head movement = %d \n", total);
 }
+
 int main() {
   int i, n, a[MAX], ch, start;
   printf("Enter the number of requests :");
