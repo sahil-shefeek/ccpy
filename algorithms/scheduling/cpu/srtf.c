@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/types.h>
+#include <sys/_types/_pid_t.h>
 #define MAX 30
 
 int queue[MAX], front = -1, rear = -1;
@@ -16,14 +16,34 @@ void enqueue(int item) {
   queue[++rear] = item;
 }
 
-int dequeue() {
-  int id = -1;
-  id = queue[front];
-  if (front == rear)
-    front = rear = -1;
-  else
-    front = front + 1;
-  return id;
+int dequeuemin(process_t *processes) {
+  int loc = front, pid = -1;
+  if (front != -1) {
+    // Assume first process as the srtj
+    pid = queue[front];
+    for (int i = front; i <= rear; i++) {
+      if (processes[pid].remaining_burst >
+          processes[queue[i]].remaining_burst) {
+        // If the job at queue[i] is shorter
+        // srtj = queue[i]
+        pid = queue[i];
+        loc = i;
+      }
+    }
+    // pid holds the srtj & loc holds it's location in queue[]
+    if (loc != front) {
+      // Swap the current queue[front] with the srtj
+      queue[loc] = queue[front];
+      queue[front] = pid;
+    }
+    // dequeue()
+    pid = queue[front];
+    if (front == rear)
+      front = rear = -1;
+    else
+      front = front + 1;
+  }
+  return pid;
 }
 
 void sort_processes(process_t *processes, int num_of_processes) {
@@ -42,8 +62,8 @@ void sort_processes(process_t *processes, int num_of_processes) {
   }
 }
 
-void round_robin(process_t *processes, int num_of_processes, int time_quantum) {
-  int cpu_time = 0;
+void round_robin(process_t *processes, int num_of_processes) {
+  int cpu_time = 0, time_unit = 1;
   process_t idle, gantt[MAX];
   idle.burst_time = 0;
 
@@ -56,19 +76,20 @@ void round_robin(process_t *processes, int num_of_processes, int time_quantum) {
       enqueue(i);
       i++;
     }
-    if (preemp_proc != -1 && processes[preemp_proc].remaining_burst != 0)
-      // add the preempted process back to the ready queue
-      enqueue(preemp_proc);
+
     if (front >= 0) {
-      preemp_proc = dequeue();
+      preemp_proc = dequeuemin(processes);
       gantt[g_index] = processes[preemp_proc];
-      int temp = ((time_quantum < gantt[g_index].remaining_burst)
-                      ? time_quantum
+      int temp = ((time_unit < gantt[g_index].remaining_burst)
+                      ? time_unit
                       : gantt[g_index].remaining_burst);
       cpu_time += temp;
       processes[preemp_proc].remaining_burst -= temp;
       gantt[g_index++].completion_time = cpu_time;
       processes[preemp_proc].completion_time = cpu_time;
+      if (preemp_proc != -1 && processes[preemp_proc].remaining_burst != 0)
+        // add the preempted process back to the ready queue
+        enqueue(preemp_proc);
     } else {
       gantt[g_index] = idle;
       gantt[g_index++].completion_time = cpu_time = processes[i].arrival_time;
@@ -84,16 +105,19 @@ void round_robin(process_t *processes, int num_of_processes, int time_quantum) {
     tat = tat + processes[i].turn_around_time;
   }
   printf("Gantt chart:\n");
-  for (i = 0; i < g_index; i++) {
+  for (i = 0; i < g_index - 1; i++) {
     if (gantt[i].burst_time == 0)
       printf("| Idle   ");
-    else
+    else if (gantt[i].pid != gantt[i + 1].pid)
       printf("| p%d    ", gantt[i].pid);
   }
-  printf("|\n");
+  printf("| p%d    |\n", gantt[i].pid);
   printf("0\t");
-  for (i = 0; i < g_index; i++)
-    printf("%2d\t", gantt[i].completion_time);
+  for (i = 0; i < g_index - 1; i++) {
+    if (gantt[i].pid != gantt[i + 1].pid)
+      printf("%2d\t", gantt[i].completion_time);
+  }
+  printf("%2d\t", gantt[i].completion_time);
   printf("\nTable :\n");
   printf(" _________________________________\n");
   printf("|Process| AT | BT | CT | TT | WT |\n");
@@ -112,12 +136,10 @@ void round_robin(process_t *processes, int num_of_processes, int time_quantum) {
 }
 
 int main() {
-  int num_of_processes, time_quantum;
+  int num_of_processes;
   process_t processes[MAX];
   printf("Enter the number of processes: ");
   scanf("%d", &num_of_processes);
-  printf("Enter the Time quantum: ");
-  scanf("%d", &time_quantum);
   for (int i = 0; i < num_of_processes; i++) {
     printf("Enter Arrival time and Burst Time of process %d: \n", i + 1);
     scanf("%d%d", &processes[i].arrival_time, &processes[i].burst_time);
@@ -125,12 +147,11 @@ int main() {
     // rbt = bt
     processes[i].remaining_burst = processes[i].burst_time;
   }
-
   // sort process based on arrival time
   sort_processes(processes, num_of_processes);
 
-  round_robin(processes, num_of_processes, time_quantum);
+  round_robin(processes, num_of_processes);
   return 0;
 }
 
-// 5 2 0 5 1 3 2 1 3 2 4 3
+// 5 2 1 1 5 4 1 0 6 2 3

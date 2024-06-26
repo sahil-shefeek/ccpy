@@ -26,15 +26,19 @@ void sort_processes(process_t *processes, int num_of_processes) {
 }
 
 void sjf(process_t *processes, int num_of_processes, process_t *gantt_chart) {
-  int cpu_time = 0, g = 0;
+  int cpu_time = 0, g_index = 0;
   process_t cpu_idle;
   cpu_idle.burst_time = 0;
   for (int i = 0; i < num_of_processes; i++) {
     if (cpu_time < processes[i].arrival_time) {
-      gantt_chart[g] = cpu_idle;
+      // No process has arrived yet. Fast forwarding cpu_time...
+      // Add cpu idling to gantt chart
+      gantt_chart[g_index] = cpu_idle;
       cpu_time = processes[i--].arrival_time;
-      gantt_chart[g++].completion_time = cpu_time;
+      gantt_chart[g_index++].completion_time = cpu_time;
     } else {
+      // We have a process!
+      // Finding the shortest job from the arrived jobs.
       int sji = i;
       process_t shortest_job = processes[i];
       for (int j = i;
@@ -50,7 +54,7 @@ void sjf(process_t *processes, int num_of_processes, process_t *gantt_chart) {
       }
       cpu_time += processes[i].burst_time;
       processes[i].completion_time = cpu_time;
-      gantt_chart[g++] = processes[i];
+      gantt_chart[g_index++] = processes[i];
     }
   }
 
@@ -67,7 +71,7 @@ void sjf(process_t *processes, int num_of_processes, process_t *gantt_chart) {
   total_turn_around_time = (double)total_turn_around_time / num_of_processes;
 
   printf("Gantt chart:\n");
-  for (int i = 0; i < g; i++) {
+  for (int i = 0; i < g_index; i++) {
     if (gantt_chart[i].burst_time == 0)
       printf("| Idle   ");
     else
@@ -75,7 +79,7 @@ void sjf(process_t *processes, int num_of_processes, process_t *gantt_chart) {
   }
   printf("|\n");
   printf("0\t");
-  for (int i = 0; i < g; i++)
+  for (int i = 0; i < g_index; i++)
     printf("%2d\t", gantt_chart[i].completion_time);
   printf("\nTable :\n");
   printf(" _________________________________\n");
@@ -103,7 +107,7 @@ int main() {
     scanf("%d%d", &processes[i].arrival_time, &processes[i].burst_time);
     processes[i].pid = i + 1;
   }
-
+  // Sort processes according to Arrival time.
   sort_processes(processes, num_of_processes);
   process_t gantt_chart[GANTT_SIZE];
   sjf(processes, num_of_processes, gantt_chart);

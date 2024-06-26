@@ -28,20 +28,25 @@ void sort_processes(process_t *processes, int num_of_processes) {
 
 void priority(process_t *processes, int num_of_processes,
               process_t *gantt_chart) {
-  int cpu_time = 0, g = 0;
+  int cpu_time = 0, g_index = 0;
   process_t cpu_idle;
   cpu_idle.burst_time = 0;
   for (int i = 0; i < num_of_processes; i++) {
     if (cpu_time < processes[i].arrival_time) {
-      gantt_chart[g] = cpu_idle;
+      // No process has arrived yet. Fast forwarding cpu_time...
+      // Add cpu idling to gantt chart
+      gantt_chart[g_index] = cpu_idle;
       cpu_time = processes[i--].arrival_time;
-      gantt_chart[g++].completion_time = cpu_time;
+      gantt_chart[g_index++].completion_time = cpu_time;
     } else {
+      // We have a process!
+      // Finding the highest priority process from the arrived processes.
       int hpi = i;
       process_t highest_priority = processes[i];
       for (int j = i;
            j < num_of_processes && processes[j].arrival_time < cpu_time; j++) {
         if (processes[j].priority < highest_priority.priority) {
+          // process[j] has higher priority. Set p[j] as the new hp
           highest_priority = processes[j];
           hpi = j;
         }
@@ -52,7 +57,7 @@ void priority(process_t *processes, int num_of_processes,
       }
       cpu_time += processes[i].burst_time;
       processes[i].completion_time = cpu_time;
-      gantt_chart[g++] = processes[i];
+      gantt_chart[g_index++] = processes[i];
     }
   }
 
@@ -69,7 +74,7 @@ void priority(process_t *processes, int num_of_processes,
   total_turn_around_time = (double)total_turn_around_time / num_of_processes;
 
   printf("Gantt chart:\n");
-  for (int i = 0; i < g; i++) {
+  for (int i = 0; i < g_index; i++) {
     if (gantt_chart[i].burst_time == 0)
       printf("| Idle   ");
     else
@@ -77,7 +82,7 @@ void priority(process_t *processes, int num_of_processes,
   }
   printf("|\n");
   printf("0\t");
-  for (int i = 0; i < g; i++)
+  for (int i = 0; i < g_index; i++)
     printf("%2d\t", gantt_chart[i].completion_time);
   printf("\nTable :\n");
   printf(" _________________________________\n");
@@ -107,7 +112,7 @@ int main() {
           &processes[i].burst_time);
     processes[i].pid = i + 1;
   }
-
+  // sort process based on arrival time
   sort_processes(processes, num_of_processes);
   process_t gantt_chart[GANTT_SIZE];
   priority(processes, num_of_processes, gantt_chart);
