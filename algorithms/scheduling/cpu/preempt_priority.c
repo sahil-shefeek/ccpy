@@ -1,4 +1,6 @@
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #define MAX 30
 
@@ -7,7 +9,7 @@ int queue[MAX], front = -1, rear = -1;
 typedef struct process {
   pid_t pid;
   int arrival_time, burst_time, completion_time, turn_around_time, waiting_time,
-      remaining_burst;
+      priority, remaining_burst;
 } process_t;
 
 void enqueue(int item) {
@@ -16,35 +18,57 @@ void enqueue(int item) {
   queue[++rear] = item;
 }
 
-int dequeue() {
-  int id = -1;
-  id = queue[front];
-  if (front == rear)
-    front = rear = -1;
-  else
-    front = front + 1;
-  return id;
-}
-
-void sort_processes(process_t *processes, int num_of_processes) {
-  for (int i = 0; i < num_of_processes - 1; i++) {
-    int swap = 0;
-    for (int j = 0; j < num_of_processes - i - 1; j++) {
-      if (processes[j].arrival_time > processes[j + 1].arrival_time) {
-        process_t temp = processes[j];
-        processes[j] = processes[j + 1];
-        processes[j + 1] = temp;
-        swap = 1;
-      }
+void enqueue_front(int item) {
+  if (front == -1) {
+    front = 0;
+    queue[++rear] = item;
+  } else {
+    for (int i = rear; i >= front; i--) {
+      queue[i + 1] = queue[i];
     }
-    if (!swap)
-      return;
+    rear++;
+    queue[front] = item;
   }
 }
 
-void handle_preempt_priority(process_t *processes, int num_of_processes,
-                             int time_quantum) {
-  int cpu_time = 0;
+int ascending_compare(const void *a, const void *b) {
+  process_t process_a = *((process_t *)a);
+  process_t process_b = *((process_t *)b);
+  return process_a.arrival_time - process_b.arrival_time;
+}
+
+int dequeue_min_priority(process_t *processes) {
+  int hpj = -1;
+  if (front != -1) {
+    // Sort the queue in ascending order of arrival time
+    qsort(queue + front, rear - front, sizeof(int), ascending_compare);
+    // Assume first process as the hpj
+    int hpj_loc = front;
+    hpj = queue[front];
+    for (int i = front; i <= rear; i++) {
+      if (processes[queue[i]].priority < processes[hpj].priority) {
+        // If the job at queue[i] is shorter, hpj = queue[i]
+        hpj = queue[i];
+        hpj_loc = i;
+      }
+    }
+    if (hpj_loc != front) {
+      // Swap the current queue[front] with the hpj
+      queue[hpj_loc] = queue[front];
+      queue[front] = hpj;
+    }
+    // normal dequeue() logic
+    hpj = queue[front];
+    if (front == rear)
+      front = rear = -1;
+    else
+      front = front + 1;
+  }
+  return hpj;
+}
+
+void handle_preempt_priority(process_t *processes, int num_of_processes) {
+  int cpu_time = 0, time_unit = 1;
   process_t idle, gantt[MAX];
   idle.burst_time = 0;
 
@@ -57,19 +81,20 @@ void handle_preempt_priority(process_t *processes, int num_of_processes,
       enqueue(i);
       i++;
     }
-    if (preemp_proc != -1 && processes[preemp_proc].remaining_burst != 0)
-      // add the preempted process back to the ready queue
-      enqueue(preemp_proc);
+
     if (front >= 0) {
-      preemp_proc = dequeue();
+      preemp_proc = dequeue_min_priority(processes);
       gantt[g_index] = processes[preemp_proc];
-      int temp = ((time_quantum < gantt[g_index].remaining_burst)
-                      ? time_quantum
+      int temp = ((time_unit < gantt[g_index].remaining_burst)
+                      ? time_unit
                       : gantt[g_index].remaining_burst);
       cpu_time += temp;
       processes[preemp_proc].remaining_burst -= temp;
       gantt[g_index++].completion_time = cpu_time;
       processes[preemp_proc].completion_time = cpu_time;
+      if (preemp_proc != -1 && processes[preemp_proc].remaining_burst != 0)
+        // add the preempted process back to the ready queue
+        enqueue_front(preemp_proc);
     } else {
       gantt[g_index] = idle;
       gantt[g_index++].completion_time = cpu_time = processes[i].arrival_time;
@@ -85,16 +110,19 @@ void handle_preempt_priority(process_t *processes, int num_of_processes,
     tat = tat + processes[i].turn_around_time;
   }
   printf("Gantt chart:\n");
-  for (i = 0; i < g_index; i++) {
+  for (i = 0; i < g_index - 1; i++) {
     if (gantt[i].burst_time == 0)
       printf("| Idle   ");
-    else
+    else if (gantt[i].pid != gantt[i + 1].pid)
       printf("| p%d    ", gantt[i].pid);
   }
-  printf("|\n");
+  printf("| p%d    |\n", gantt[i].pid);
   printf("0\t");
-  for (i = 0; i < g_index; i++)
-    printf("%2d\t", gantt[i].completion_time);
+  for (i = 0; i < g_index - 1; i++) {
+    if (gantt[i].pid != gantt[i + 1].pid)
+      printf("%2d\t", gantt[i].completion_time);
+  }
+  printf("%2d\t", gantt[i].completion_time);
   printf("\nTable :\n");
   printf(" _________________________________\n");
   printf("|Process| AT | BT | CT | TT | WT |\n");
@@ -113,25 +141,27 @@ void handle_preempt_priority(process_t *processes, int num_of_processes,
 }
 
 int main() {
-  int num_of_processes, time_quantum;
+  int num_of_processes;
   process_t processes[MAX];
   printf("Enter the number of processes: ");
   scanf("%d", &num_of_processes);
-  printf("Enter the Time quantum: ");
-  scanf("%d", &time_quantum);
   for (int i = 0; i < num_of_processes; i++) {
-    printf("Enter Arrival time and Burst Time of process %d: \n", i + 1);
-    scanf("%d%d", &processes[i].arrival_time, &processes[i].burst_time);
+    printf("Enter the priority, arrival time and burst time of: Process %d\n",
+           i + 1);
+    scanf("%d%d%d", &processes[i].priority, &processes[i].arrival_time,
+          &processes[i].burst_time);
     processes[i].pid = i + 1;
     // rbt = bt
     processes[i].remaining_burst = processes[i].burst_time;
   }
-
   // sort process based on arrival time
-  sort_processes(processes, num_of_processes);
-
-  handle_preempt_priority(processes, num_of_processes, time_quantum);
+  qsort(processes, num_of_processes, sizeof(process_t), ascending_compare);
+  handle_preempt_priority(processes, num_of_processes);
   return 0;
 }
 
-// 5 2 0 5 1 3 2 1 3 2 4 3
+// 5 3 0 3 3 0 4 4 2 6 6 3 4 10 5 2
+// 5 3 0 3 3 1 4 4 2 6 6 3 4 10 5 2
+// 5 3 1 3 3 0 4 4 2 6 6 3 4 10 5 2
+// 5 3 0 4 3 1 3 4 2 6 6 3 4 10 5 2
+// 5 3 0 3 2 1 4 4 2 6 6 3 4 10 5 2

@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include <sys/_types/_pid_t.h>
+#include <stdlib.h>
+#include <sys/types.h>
 #define MAX 30
 
 int queue[MAX], front = -1, rear = -1;
@@ -16,53 +17,57 @@ void enqueue(int item) {
   queue[++rear] = item;
 }
 
-int dequeuemin(process_t *processes) {
-  int loc = front, pid = -1;
+void enqueue_front(int item) {
+  if (front == -1) {
+    front = 0;
+    queue[++rear] = item;
+  } else {
+    for (int i = rear; i >= front; i--) {
+      queue[i + 1] = queue[i];
+    }
+    rear++;
+    queue[front] = item;
+  }
+}
+
+int ascending_compare(const void *a, const void *b) {
+  process_t process_a = *((process_t *)a);
+  process_t process_b = *((process_t *)b);
+  return process_a.arrival_time - process_b.arrival_time;
+}
+
+int dequeue_srtj(process_t *processes) {
+  int srtj = -1;
   if (front != -1) {
+    // Sort the queue in ascending order of arrival time
+    qsort(queue + front, rear - front, sizeof(int), ascending_compare);
     // Assume first process as the srtj
-    pid = queue[front];
+    int srtj_loc = front;
+    srtj = queue[front];
     for (int i = front; i <= rear; i++) {
-      if (processes[pid].remaining_burst >
-          processes[queue[i]].remaining_burst) {
-        // If the job at queue[i] is shorter
-        // srtj = queue[i]
-        pid = queue[i];
-        loc = i;
+      if (processes[queue[i]].remaining_burst <
+          processes[srtj].remaining_burst) {
+        // If the job at queue[i] is shorter, srtj = queue[i]
+        srtj = queue[i];
+        srtj_loc = i;
       }
     }
-    // pid holds the srtj & loc holds it's location in queue[]
-    if (loc != front) {
+    if (srtj_loc != front) {
       // Swap the current queue[front] with the srtj
-      queue[loc] = queue[front];
-      queue[front] = pid;
+      queue[srtj_loc] = queue[front];
+      queue[front] = srtj;
     }
-    // dequeue()
-    pid = queue[front];
+    // normal dequeue() logic
+    srtj = queue[front];
     if (front == rear)
       front = rear = -1;
     else
       front = front + 1;
   }
-  return pid;
+  return srtj;
 }
 
-void sort_processes(process_t *processes, int num_of_processes) {
-  for (int i = 0; i < num_of_processes - 1; i++) {
-    int swap = 0;
-    for (int j = 0; j < num_of_processes - i - 1; j++) {
-      if (processes[j].arrival_time > processes[j + 1].arrival_time) {
-        process_t temp = processes[j];
-        processes[j] = processes[j + 1];
-        processes[j + 1] = temp;
-        swap = 1;
-      }
-    }
-    if (!swap)
-      return;
-  }
-}
-
-void round_robin(process_t *processes, int num_of_processes) {
+void handle_srtj(process_t *processes, int num_of_processes) {
   int cpu_time = 0, time_unit = 1;
   process_t idle, gantt[MAX];
   idle.burst_time = 0;
@@ -78,7 +83,7 @@ void round_robin(process_t *processes, int num_of_processes) {
     }
 
     if (front >= 0) {
-      preemp_proc = dequeuemin(processes);
+      preemp_proc = dequeue_srtj(processes);
       gantt[g_index] = processes[preemp_proc];
       int temp = ((time_unit < gantt[g_index].remaining_burst)
                       ? time_unit
@@ -89,7 +94,7 @@ void round_robin(process_t *processes, int num_of_processes) {
       processes[preemp_proc].completion_time = cpu_time;
       if (preemp_proc != -1 && processes[preemp_proc].remaining_burst != 0)
         // add the preempted process back to the ready queue
-        enqueue(preemp_proc);
+        enqueue_front(preemp_proc);
     } else {
       gantt[g_index] = idle;
       gantt[g_index++].completion_time = cpu_time = processes[i].arrival_time;
@@ -148,10 +153,12 @@ int main() {
     processes[i].remaining_burst = processes[i].burst_time;
   }
   // sort process based on arrival time
-  sort_processes(processes, num_of_processes);
 
-  round_robin(processes, num_of_processes);
+  qsort(processes, num_of_processes, sizeof(process_t), ascending_compare);
+
+  handle_srtj(processes, num_of_processes);
   return 0;
 }
 
-// 5 2 1 1 5 4 1 0 6 2 3
+// 5 2 6 5 2 1 8 0 3 4 4
+// 5 2 6 0 3 0 3 0 3 4 4

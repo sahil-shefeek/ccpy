@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 
 #define GANTT_SIZE 10
@@ -9,20 +10,10 @@ typedef struct process {
   int completion_time, turn_around_time, waiting_time;
 } process_t;
 
-void sort_processes(process_t *processes, int num_of_processes) {
-  for (int i = 0; i < num_of_processes - 1; i++) {
-    int swap = 0;
-    for (int j = 0; j < num_of_processes - i - 1; j++) {
-      if (processes[j].arrival_time > processes[j + 1].arrival_time) {
-        process_t temp = processes[j];
-        processes[j] = processes[j + 1];
-        processes[j + 1] = temp;
-        swap = 1;
-      }
-    }
-    if (!swap)
-      return;
-  }
+int ascending_compare(const void *a, const void *b) {
+  process_t process_a = *((process_t *)a);
+  process_t process_b = *((process_t *)b);
+  return process_a.arrival_time - process_b.arrival_time;
 }
 
 void sjf(process_t *processes, int num_of_processes, process_t *gantt_chart) {
@@ -108,7 +99,7 @@ int main() {
     processes[i].pid = i + 1;
   }
   // Sort processes according to Arrival time.
-  sort_processes(processes, num_of_processes);
+  qsort(processes, num_of_processes, sizeof(processes), ascending_compare);
   process_t gantt_chart[GANTT_SIZE];
   sjf(processes, num_of_processes, gantt_chart);
 

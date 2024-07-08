@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 
 typedef struct process {
@@ -17,20 +18,10 @@ void get_process_list(process_t *list, int num_of_processes) {
   }
 }
 
-void sort_processes(process_t *list, int num_of_processes) {
-  for (int i = 0; i < num_of_processes - 1; i++) {
-    int swap = 0;
-    for (int j = 0; j < num_of_processes - i - 1; j++) {
-      if (list[j].arriv_time > list[j + 1].arriv_time) {
-        process_t temp = list[j];
-        list[j] = list[j + 1];
-        list[j + 1] = temp;
-        swap = 1;
-      }
-    }
-    if (!swap)
-      return;
-  }
+int ascending_compare(const void *a, const void *b) {
+  process_t process_a = *((process_t *)a);
+  process_t process_b = *((process_t *)b);
+  return process_a.arriv_time - process_b.arriv_time;
 }
 
 void queify(process_t *list, int num_of_processes) {
@@ -100,7 +91,7 @@ int main(int argc, char *argv[]) {
   scanf("%d", &num_of_processes);
   process_t process_list[num_of_processes];
   get_process_list(process_list, num_of_processes);
-  sort_processes(process_list, num_of_processes);
+  qsort(process_list, num_of_processes, sizeof(process_t), ascending_compare);
   queify(process_list, num_of_processes);
   print_process_table(process_list, num_of_processes);
   print_gantt_chart(process_list, num_of_processes);
