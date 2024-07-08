@@ -31,17 +31,23 @@ void enqueue_front(int item) {
   }
 }
 
-int ascending_compare(const void *a, const void *b) {
+int ascending_compare_processes(const void *a, const void *b) {
   process_t process_a = *((process_t *)a);
   process_t process_b = *((process_t *)b);
   return process_a.arrival_time - process_b.arrival_time;
+}
+
+int ascending_compare_integers(const void *a, const void *b) {
+  int num_a = *((int *)a);
+  int num_b = *((int *)b);
+  return num_a - num_b;
 }
 
 int dequeue_min_priority(process_t *processes) {
   int hpj = -1;
   if (front != -1) {
     // Sort the queue in ascending order of arrival time
-    qsort(queue + front, rear - front, sizeof(int), ascending_compare);
+    qsort(queue + front, rear - front, sizeof(int), ascending_compare_integers);
     // Assume first process as the hpj
     int hpj_loc = front;
     hpj = queue[front];
@@ -155,7 +161,8 @@ int main() {
     processes[i].remaining_burst = processes[i].burst_time;
   }
   // sort process based on arrival time
-  qsort(processes, num_of_processes, sizeof(process_t), ascending_compare);
+  qsort(processes, num_of_processes, sizeof(process_t),
+        ascending_compare_processes);
   handle_preempt_priority(processes, num_of_processes);
   return 0;
 }
