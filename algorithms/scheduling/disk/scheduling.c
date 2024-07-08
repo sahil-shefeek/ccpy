@@ -1,112 +1,169 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define MAX 20
+#define OFFSET 3
 
-int temp;
+enum { LOOK = 0, SCAN } mode;
 
-void sort(int *a, int n) {
-  for (int i = 0; i < n - 1; i++) {
-    for (int j = 0; j < n - 1; j++) {
-      if (a[j] > a[j + 1]) {
-        temp = a[j];
-        a[j] = a[j + 1];
-        a[j + 1] = temp;
-      }
+int ascending_compare(const void *a, const void *b) {
+  int num_a = *((int *)a);
+  int num_b = *((int *)b);
+  return num_a - num_b;
+}
+
+void fcfs(int *requests, int number_of_request) {
+  int total_head_movement = 0;
+  // Print 1st served request
+  printf("Sequence : %d ", requests[0]);
+  // Go through traversed requests array
+  // Number_of_request is less than actual as we didn't count initial_position
+  for (int i = 0; i < number_of_request; i++) {
+    // Print the rest serves
+    printf(",  %d", requests[i + 1]);
+    total_head_movement += abs(requests[i + 1] - requests[i]);
+  }
+  printf("\nTotal head movement = %d \n", total_head_movement);
+}
+
+void scan_or_look(int *requests, int number_of_request, int initial_position,
+                  int mode) {
+  int choice, total_head_movement = 0;
+  int traversed[number_of_request];
+
+  printf("Choose direction\n"
+         "1. Left\n"
+         "2. Right\n");
+  scanf("%d", &choice);
+  // Initial chosen direction
+  // Increment(+1) or Decrement(-1) from initial_position
+  int inc = (choice == 1) ? (-1) : 1;
+
+  // sort requests
+  qsort(requests, number_of_request, sizeof(int), ascending_compare);
+
+  // Find index of initial_position in request array
+  int i = 0;
+  while (i < number_of_request && requests[i] != initial_position)
+    i++;
+  int loc = i;
+
+  // MAIN LOGIC
+  int traverse_index = 0;
+  while (traverse_index < number_of_request - mode) {
+    // Go through all sorted requests starting from initial position
+    traversed[traverse_index++] = requests[i];
+    // Increment index in chosen direction
+    i += inc;
+    // When head reaches end of disk (0 or n-1 index)
+    if ((i < 0 || i > number_of_request - 1) &&
+        traverse_index < number_of_request - 1) {
+      inc *= (-1);
+      i = loc + inc;
     }
   }
+  fcfs(traversed, traverse_index - 1);
 }
 
-void fcfs(int *a, int n) {
-  int i, total = 0;
-  printf("Sequence : %d ", a[0]);
-  for (i = 0; i < n; i++) {
-    printf("%d ", a[i + 1]);
-    total += abs(a[i + 1] - a[i]);
-  }
-  printf("\nTotal head movement = %d \n", total);
-}
+void cscan(int *requests, int number_of_request, int initial_position) {
+  int choice, total_head_movement = 0;
+  int traversed[number_of_request];
 
-void scan(int *c1, int n, int start) {
-  int c, total = 0, loc, i, j, min, max, inc,a[MAX], b[MAX];
-  for (i = 0; i < n +1; i++)
-    a[i]=c1[i];
-  printf("Choose 1:left or 2:right :");
-  scanf("%d", &c);
-  printf("Enter the Start and End of disk :");
-  scanf("%d%d", &min, &max);
-  a[++n] = min, a[++n] = max;
-  sort(a, ++n);
-  for (i = 0; i < n && a[i] != start; i++);
-  loc = i;
-  inc = (c == 1) ? (-1) : 1;
-  for (i = loc, j = 0; i >= 0 && i < n;) {
-    b[j++] = a[i];
+  printf("Choose direction\n"
+         "1. Left\n"
+         "2. Right\n");
+  scanf("%d", &choice);
+  // Initial chosen direction
+  // Increment(+1) or Decrement(-1) from initial_position
+  int inc = (choice == 1) ? (-1) : 1;
+
+  // sort requests
+  qsort(requests, number_of_request, sizeof(int), ascending_compare);
+
+  // Find index of initial_position in request array
+  int i = 0;
+  while (i < number_of_request && requests[i] != initial_position)
+    i++;
+  int loc = i;
+
+  // MAIN LOGIC
+  int traverse_index = 0;
+  while (traverse_index < number_of_request) {
+    // Go through all sorted requests starting from initial position
+    traversed[traverse_index++] = requests[i];
+    // Increment index in chosen direction
     i += inc;
-    if ((i < 0 || i > n - 1) && j < n - 1)
-      inc *= (-1), i = loc + inc;
+    // When head reaches end of disk (0 or n-1 index)
+    if ((i < 0 || i > number_of_request - 1) &&
+        traverse_index < number_of_request - 1) {
+      // Reset index to next to initial_position to start traversal from that
+      // request to other end Reset direction to opposite of initial chosen
+      // direction by changing increment
+      i = i < 0 ? number_of_request - 1 : 0;
+    }
   }
-  printf("Sequence : %d ", b[0]);
-  for (i = 0; i < n - 1; i++) {
-    printf("%d ", b[i + 1]);
-    total += abs(b[i + 1] - b[i]);
-  }
-  printf("\nTotal head movement = %d \n", total);
-}
-
-void cscan(int c1[], int n, int start) {
-  int c, total = 0, loc, i, j, min, max, inc,a[MAX], b[MAX];
-  for (i = 0; i < n + 1; i++)
-    a[i]=c1[i];
-  printf("Choose 1:left or 2:right :");
-  scanf("%d", &c);
-  printf("Enter the Start and End of disk :");
-  scanf("%d%d", &min, &max);
-  a[++n] = min, a[++n] = max;
-  sort(a, ++n);
-  for (i = 0; i < n && a[i] != start; i++);
-  loc = i;
-  inc = (c == 1) ? (-1) : 1;
-  for (i = loc, j = 0; j < n;) {
-    b[j++] = a[i];
-    i += inc;
-    if ((i < 0 || i > n - 1) && j < n - 1)
-      i = (i < 0) ? (n - 1) : 0;
-  }
-  printf("Sequence : %d ", b[0]);
-  for (i = 0; i < n - 1; i++) {
-    printf("%d ", b[i + 1]);
-    total += abs(b[i + 1] - b[i]);
-  }
-  printf("\nTotal head movement = %d \n", total);
+  fcfs(traversed, traverse_index - 1);
 }
 
 int main() {
-  int i, n, a[MAX], ch, start;
-  printf("Enter the number of requests :");
-  scanf("%d", &n);
-  for (i = 1; i < n + 1; i++)
-    scanf("%d", &a[i]);
-  printf("Enter the starting position :");
-  scanf("%d", &start);
-  a[0] = start;
-  do {
-    printf("Enter 1:FCFS 2:SCAN 3:CSCAN 4:Exit :\n");
-    scanf("%d", &ch);
-    switch (ch) {
+  int number_of_request, initial_position;
+  printf("Enter the number of requests: ");
+  scanf("%d", &number_of_request);
+  int requests[number_of_request + OFFSET];
+  printf("Enter the Requests:\n");
+  for (int i = 1; i < number_of_request + 1; i++)
+    scanf("%d", &requests[i]);
+
+  int disk_start, disk_end;
+  printf("Enter the Start and End of disk: ");
+  scanf("%d%d", &disk_start, &disk_end);
+  // Add disk start and end to request array
+  requests[++number_of_request] = disk_start;
+  requests[++number_of_request] = disk_end;
+
+  // Enter the initial position
+  printf("Enter the initial position: ");
+  scanf("%d", &initial_position);
+  requests[0] = initial_position;
+  number_of_request++;
+
+  int choice = -1;
+  while (1) {
+    // Choose the scheduling
+    int copy_of_requests[number_of_request + OFFSET];
+    memcpy(copy_of_requests, requests, sizeof(requests));
+    printf("Menu\n"
+           "1. FCFS\n"
+           "2. SCAN\n"
+           "3. CSCAN\n"
+           "4. SCAN\n"
+           "5. CSCAN\n"
+           "6. Exit\n");
+    scanf("%d", &choice);
+    switch (choice) {
     case 1:
-      fcfs(a, n);
+      fcfs(copy_of_requests, number_of_request - 3);
       break;
     case 2:
-      scan(a, n, start);
+      scan_or_look(copy_of_requests, number_of_request, initial_position, SCAN);
       break;
     case 3:
-      cscan(a, n, start);
-    case 4:
+      cscan(copy_of_requests, number_of_request, initial_position);
       break;
+    case 4:
+      scan_or_look(copy_of_requests, number_of_request - 2, initial_position,
+                   LOOK);
+      break;
+    case 5:
+      cscan(copy_of_requests, number_of_request - 2, initial_position);
+      break;
+    case 6:
+      return 0;
     default:
       printf("Invalid input\n");
     }
-  } while (ch != 4);
+  }
   return 0;
 }
+
+// 8 98 183 37 122 14 124 65 67 0 199 53 1 2 1 2 2 3 1 3 2 4 1 4 2 5 1 5 2
