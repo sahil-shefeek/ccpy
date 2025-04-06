@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"github.copilot.editor.enableAutoCompletions": false,
+		"editor.codeLens": false,
+		"editor.inlineSuggest.enabled": false,
+		"editor.snippetSuggestions": "none",
+		"editor.wordBasedSuggestions": "off",
+		"debug.console.historySuggestions": false,
+		"editor.quickSuggestions": {
+			"other": "off"
+		},
+		"editor.suggestOnTriggerCharacters": false
+	}
+}
