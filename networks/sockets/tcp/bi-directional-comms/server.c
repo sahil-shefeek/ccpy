@@ -1,97 +1,70 @@
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <string.h>
 
-#define SERVER_BACKLOG 2
 #define SOCKET_ERROR (-1)
-#define SERVER_PORT 8080
-#define CLIENT_BUF_SIZE 128
-#define SERVER_BUF_SIZE 128
+#define PORT 8080
+#define BUF_SIZE 1024
 
-typedef struct sockaddr_in SA_IN;
 typedef struct sockaddr SA;
+typedef struct sockaddr_in SA_IN;
 
-int check(int exp, const char *msg) {
-  if (exp == SOCKET_ERROR) {
+int check(int exp, const char *msg)
+{
+  if (exp == SOCKET_ERROR)
+  {
     perror(msg);
     exit(EXIT_FAILURE);
   }
   return exp;
 }
 
-void *send_msg(void *arg) {
-  int client_sock = *(int *)arg;
-  char server_buf[SERVER_BUF_SIZE];
-
-  while (1) {
-    memset(server_buf, 0, SERVER_BUF_SIZE);
-    if (fgets(server_buf, SERVER_BUF_SIZE, stdin) != NULL) {
-      int ret = send(client_sock, server_buf, strlen(server_buf), 0);
-      if (ret < 0) {
-        perror("Failed sending client data");
-        break;
-      }
-    }
+void *handle_client_messages(void *client_sock)
+{
+  int client = *(int *)client_sock;
+  char recv_buf[BUF_SIZE];
+  int recvd_bytes;
+  do
+  {
+    recvd_bytes = check(recv(client, recv_buf, BUF_SIZE, 0), "Error receiving data from client");
+    recv_buf[recvd_bytes] = '\0';
+    printf("Client: %s\n", recv_buf);
+  } while (recvd_bytes > 0);
+  if (!recvd_bytes)
+  {
+    printf("Client closed connection!\n");
+    close(client);
+    pthread_exit(0);
   }
-  return NULL;
+  pthread_exit(0);
 }
 
-void *recv_msg(void *arg) {
-  int client_sock = *(int *)arg;
-  char client_buf[CLIENT_BUF_SIZE];
-
-  while (1) {
-    memset(client_buf, 0, CLIENT_BUF_SIZE);
-    int bytes_recvd = recv(client_sock, client_buf, CLIENT_BUF_SIZE, 0);
-    if (bytes_recvd > 0) {
-      printf("[CLIENT]: %s\n", client_buf);
-    } else if (bytes_recvd == 0) {
-      printf("Client disconnected!\n");
-      break;
-    } else {
-      perror("Error receiving data");
-      break;
-    }
-  }
-  return NULL;
-}
-
-int main() {
+int main()
+{
+  int sock = check(socket(AF_INET, SOCK_STREAM, 0), "Socket creation failed");
   SA_IN server_addr;
   server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(SERVER_PORT);
-  server_addr.sin_addr.s_addr = INADDR_ANY;
-
-  int server_sock =
-      check(socket(AF_INET, SOCK_STREAM, 0), "Socket creation failed!");
-  check(bind(server_sock, (SA *)&server_addr, sizeof(server_addr)),
-        "Socket binding failed!");
-  check(listen(server_sock, SERVER_BACKLOG), "Listening on socket failed!");
-  printf("Server running on port %d\n", SERVER_PORT);
-
-  int client_sock = check(accept(server_sock, NULL, NULL),
-                          "Failed to accept client connection!");
-
-  pthread_t send_thread, recv_thread;
-  if (pthread_create(&send_thread, NULL, send_msg, (void *)&client_sock) != 0) {
-    perror("Could not create send thread");
-    exit(EXIT_FAILURE);
+  server_addr.sin_port = htons(PORT);
+  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  check(bind(sock, (SA *)&server_addr, sizeof(server_addr)), "Socket binding failed");
+  check(listen(sock, 3), "Listening failed");
+  printf("Server listening at localhost:%d\n", PORT);
+  int client = check(accept(sock, NULL, NULL), "Failed to accept connection");
+  pthread_t recv_thread;
+  pthread_create(&recv_thread, NULL, handle_client_messages, (void *)&client);
+  pthread_detach(recv_thread);
+  char send_buf[BUF_SIZE];
+  while (1)
+  {
+    printf("Enter data to send: ");
+    fgets(send_buf, BUF_SIZE, stdin);
+    check(send(client, send_buf, strlen(send_buf), 0), "Failed to send data to client");
   }
-  if (pthread_create(&recv_thread, NULL, recv_msg, (void *)&client_sock) != 0) {
-    perror("Could not create recv thread");
-    exit(EXIT_FAILURE);
-  }
-  printf("Client connected!\n");
-
-  pthread_join(send_thread, NULL);
-  pthread_join(recv_thread, NULL);
-
-  close(client_sock);
-  close(server_sock);
+  close(sock);
   return 0;
 }
