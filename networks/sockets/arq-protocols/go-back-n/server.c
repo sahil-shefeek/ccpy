@@ -1,90 +1,94 @@
-#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <stdbool.h>
 
+#define PORT 8081
 #define SOCKET_ERROR (-1)
-#define SERVER_PORT 8080
+#define BUF_SIZE 128
 
 typedef struct sockaddr_in SA_IN;
 typedef struct sockaddr SA;
 
-int check(int exp, const char *msg) {
-  if (exp == SOCKET_ERROR) {
+int check(int exp, const char *msg)
+{
+  if (exp == SOCKET_ERROR)
+  {
     perror(msg);
     exit(EXIT_FAILURE);
   }
   return exp;
 }
 
-struct pkt {
-  int ACK;
-  int seqnum;
-  char data[25];
-};
+typedef struct frame
+{
+  char data[BUF_SIZE];
+  int seq;
+  bool is_ack;
+} frame_t;
 
-int main(int argc, char *argv[]) {
-  struct pkt recvPacket, ackPacket;
+typedef struct ack_frame
+{
+  int ack;
+} ack_frame_t;
 
-  int expected_seq = 0;
-  int recvSocket =
-      check(socket(AF_INET, SOCK_DGRAM, 0), "Socket creation failed");
-  SA_IN receiverAddr;
-  receiverAddr.sin_family = AF_INET;
-  receiverAddr.sin_port = htons(SERVER_PORT);
-  receiverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-  check(bind(recvSocket, (SA *)&receiverAddr, sizeof(receiverAddr)),
-        "Failed to bind socket");
-
-  printf("Server running on port: %d\n", SERVER_PORT);
-
-  while (1) {
-    SA_IN senderAddr;
-    socklen_t addr_size = sizeof(senderAddr);
-    check(recvfrom(recvSocket, &recvPacket, sizeof(recvPacket), 0,
-                   (SA *)&senderAddr, &addr_size),
-          "Failed to receive data");
-
-    if (recvPacket.seqnum == expected_seq) {
-      int drop = rand() % 10;
-      if (drop < 2) {
-        printf("[DROP] Frame '%s' with seq #%d dropped (simulated loss).\n",
-               recvPacket.data, recvPacket.seqnum);
-        continue;
-      } else if (drop < 4) {
-        printf("[ACK DROP] Frame '%s' with seq #%d received, but ACK dropped "
-               "(simulated loss).\n",
-               recvPacket.data, recvPacket.seqnum);
+int main()
+{
+  int sock = check(socket(AF_INET, SOCK_DGRAM, 0), "Socket creation failed");
+  SA_IN server_addr, client_addr;
+  socklen_t client_len = sizeof(client_addr);
+  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  server_addr.sin_port = htons(PORT);
+  server_addr.sin_family = AF_INET;
+  check(bind(sock, (SA *)&server_addr, sizeof(server_addr)), "Socket binding failed");
+  printf("UDP server listening at 127.0.0.1:%d\n", PORT);
+  int frames_recvd = 0, expected_seq = 0;
+  frame_t recvd_frame;
+  ack_frame_t ack;
+  int recv_len;
+  do
+  {
+    recv_len = recvfrom(sock, &recvd_frame, sizeof(recvd_frame), 0, (SA *)&client_addr, &client_len);
+    int drop = rand() % 10;
+    if (drop < 2)
+    {
+      printf("Simulating a frame loss for %dth frame with seq %d.\n", frames_recvd, recvd_frame.seq);
+    }
+    else if (drop < 4)
+    {
+      printf("Simulating an ack loss for %dth frame with seq %d.\n", frames_recvd, recvd_frame.seq);
+      expected_seq++;
+    }
+    else
+    {
+      if (expected_seq == recvd_frame.seq)
+      {
+        printf("Simulating succesful reception for %dth frame with seq %d. Sending ack\n", frames_recvd, recvd_frame.seq);
+        ack.ack = expected_seq;
+        sendto(sock, &ack, sizeof(ack), 0, (SA *)&client_addr, client_len);
         expected_seq++;
-        continue;
-      } else {
-        printf("[RECEIVED] Expected frame: '%s' with seq #%d. Sending ACK.\n",
-               recvPacket.data, recvPacket.seqnum);
-        ackPacket.ACK = recvPacket.seqnum;
-        sendto(recvSocket, &ackPacket, sizeof(ackPacket), 0, (SA *)&senderAddr,
-               addr_size);
-        expected_seq++;
+        frames_recvd++;
       }
-    } else if (recvPacket.seqnum < expected_seq) {
-      printf("[DUPLICATE] Duplicate frame received: '%s' with seq #%d. "
-             "Resending ACK.\n",
-             recvPacket.data, recvPacket.seqnum);
-      ackPacket.ACK = recvPacket.seqnum;
-      sendto(recvSocket, &ackPacket, sizeof(ackPacket), 0, (SA *)&senderAddr,
-             addr_size);
-    } else { // recvPacket.seqnum > expected_seq
-      printf("[OUT-OF-ORDER] Frame '%s' received with seq #%d, but expected "
-             "seq #%d. Discarding frame.\n",
-             recvPacket.data, recvPacket.seqnum, expected_seq);
-      if (expected_seq > 0) {
-        ackPacket.ACK = expected_seq - 1;
-        printf("[INFO] Resending ACK for last in-order frame #%d.\n",
-               ackPacket.ACK);
-        sendto(recvSocket, &ackPacket, sizeof(ackPacket), 0, (SA *)&senderAddr,
-               addr_size);
+      else if (recvd_frame.seq < expected_seq)
+      {
+        printf("Discarding a duplicate frame received with seq %d. Sending ack for last successfully received frame (%d)\n", recvd_frame.seq, expected_seq - 1);
+        ack.ack = expected_seq - 1;
+        sendto(sock, &ack, sizeof(ack), 0, (SA *)&client_addr, client_len);
+      }
+      else
+      {
+        printf("Received out of order frame with seq %d. Sending ack for last successfully received frame (%d)\n", recvd_frame.seq, expected_seq - 1);
+        ack.ack = expected_seq - 1;
+        sendto(sock, &ack, sizeof(ack), 0, (SA *)&client_addr, client_len);
       }
     }
-  }
+  } while (recv_len > 0);
+  printf("Received end marker. Terminating...\n");
+  close(sock);
   return 0;
 }
