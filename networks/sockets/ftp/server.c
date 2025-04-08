@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #define PORT 8080
@@ -86,5 +84,6 @@ int main()
     pthread_detach(clients[next_client]);
     next_client++;
   }
+  close(server_sock);
   return 0;
 }
