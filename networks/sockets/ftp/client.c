@@ -11,39 +11,35 @@
 #define BUF_SIZE 1024
 #define SOCKET_ERROR (-1)
 
-int check(int exp, const char *msg) {
-  if (exp == SOCKET_ERROR) {
+typedef struct sockaddr_in SA_IN;
+typedef struct sockaddr SA;
+
+int check(int exp, const char *msg)
+{
+  if (exp == SOCKET_ERROR)
+  {
     perror(msg);
     exit(EXIT_FAILURE);
   }
   return exp;
 }
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    fprintf(stderr, "Usage: %s <server_ip>\n", argv[0]);
-    exit(EXIT_FAILURE);
-  }
-
+int main()
+{
   int sock = check(socket(AF_INET, SOCK_STREAM, 0), "Error creating socket!");
-  struct sockaddr_in server_addr;
+  SA_IN server_addr;
   char filename[256];
   char buffer[BUF_SIZE];
 
   server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   server_addr.sin_port = htons(PORT);
-
-  if (inet_pton(AF_INET, argv[1], &server_addr.sin_addr) <= 0) {
-    perror("Invalid address/ Address not supported");
-    close(sock);
-    exit(EXIT_FAILURE);
-  }
-
-  check(connect(sock, (struct sockaddr *)&server_addr, sizeof(server_addr)),
-        "Failed to connect");
-
-  printf("Enter the filename to request: ");
-  if (fgets(filename, sizeof(filename), stdin) == NULL) {
+  check(connect(sock, (SA *)&server_addr, sizeof(server_addr)), "Failed to connect");
+  printf("Connected to FTP server at 127.0.0.1:%d\n"
+         "Enter the filename to request: ",
+         PORT);
+  if (fgets(filename, sizeof(filename), stdin) == NULL)
+  {
     fprintf(stderr, "Error reading filename\n");
     close(sock);
     exit(EXIT_FAILURE);
@@ -52,12 +48,12 @@ int main(int argc, char *argv[]) {
 
   send(sock, &filename, sizeof(filename), 0);
   int bytes_read;
-  while ((bytes_read = check(read(sock, buffer, sizeof(buffer) - 1),
-                             "Error receiving file contents from server")) >
-         0) {
+  do
+  {
+    bytes_read = check(read(sock, buffer, sizeof(buffer) - 1), "Error receiving file contents from server");
     buffer[bytes_read] = '\0';
     printf("%s", buffer);
-  }
+  } while (bytes_read > 0);
   close(sock);
   return 0;
 }
