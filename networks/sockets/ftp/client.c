@@ -49,7 +49,7 @@ int main()
   int bytes_read;
   do
   {
-    bytes_read = check(read(sock, buffer, sizeof(buffer) - 1), "Error receiving file contents from server");
+    bytes_read = check(recv(sock, buffer, sizeof(buffer) - 1, 0), "Error receiving file contents from server");
     buffer[bytes_read] = '\0';
     printf("%s", buffer);
   } while (bytes_read > 0);
